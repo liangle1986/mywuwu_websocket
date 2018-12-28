@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mywuwu.mapper.TestMapper">
+  <resultMap id="BaseResultMap" type="com.mywuwu.entity.Test">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+  </resultMap>
+
+  <!--<select id="selectDictInfoList" parameterType="com.metadata.dto.DictInfoDto" resultMap="BaseResultMap">-->
+    <!--select * FROM  dict_info${versionCode}-->
+    <!--<trim prefix="where" prefixOverrides="and">-->
+
+      <!--<if test="dictName != null">-->
+        <!--and dict_name like concat('%',#{dictName,jdbcType=VARCHAR},'%')-->
+      <!--</if>-->
+
+      <!--<if test="sqlCommand != null">-->
+        <!--and SQL_command like concat('%',#{sqlCommand,jdbcType=VARCHAR},'%')-->
+      <!--</if>-->
+
+      <!--<if test="dictType != null">-->
+        <!--and dict_type = #{dictType}-->
+      <!--</if>-->
+      <!--<if test="id != null">-->
+        <!--AND id = #{id}-->
+      <!--</if>-->
+      <!--<if test="showOrder != null">-->
+        <!--AND show_order = #{showOrder}-->
+      <!--</if>-->
+      <!--<if test="description != null">-->
+        <!--AND description = like concat('%',#{description,jdbcType=VARCHAR},'%')-->
+      <!--</if>-->
+    <!--</trim>-->
+    <!--order by CONVERT(id,SIGNED)-->
+  <!--</select>-->
+
+
+  <!--<select id="selectDictInfoCount" parameterType="com.metadata.dto.DictInfoDto" resultType="java.lang.Integer">-->
+    <!--select count(id) FROM  dict_info${versionCode}-->
+    <!--<trim prefix="where" prefixOverrides="and">-->
+
+      <!--<if test="dictName != null">-->
+        <!--and dict_name like concat('%',#{dictName,jdbcType=VARCHAR},'%')-->
+      <!--</if>-->
+
+      <!--<if test="sqlCommand != null">-->
+        <!--and SQL_command like concat('%',#{sqlCommand,jdbcType=VARCHAR},'%')-->
+      <!--</if>-->
+
+      <!--<if test="dictType != null">-->
+        <!--and dict_type = #{dictType}-->
+      <!--</if>-->
+
+      <!--<if test="id != null">-->
+        <!--AND id = #{id}-->
+      <!--</if>-->
+
+      <!--<if test="showOrder != null">-->
+        <!--AND show_order = #{showOrder}-->
+      <!--</if>-->
+
+      <!--<if test="description != null">-->
+        <!--AND description = like concat('%',#{description,jdbcType=VARCHAR},'%')-->
+      <!--</if>-->
+    <!--</trim>-->
+  <!--</select>-->
+
+  <select id="selectCountAll" resultType="java.lang.Integer">
+    select count(1) from test
+  </select>
+</mapper>
