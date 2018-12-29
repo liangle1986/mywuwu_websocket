@@ -5,6 +5,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.mywuwu.service.IWsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.websocket.*;
@@ -12,6 +14,7 @@ import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
@@ -20,19 +23,22 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * @Description:
  */
 
-@ServerEndpoint(value = "/mywuwu/websocket")
+@ServerEndpoint(value = "/mywuwu/websocket/{userId}")
 @Component
 public class MyWebSocket {
 
-//    @Autowired
-//    private static ApplicationContext applicationContext;
-//    @Autowired
-//    private IWsService wsService;
-//
-//    public static void setApplicationContext(ApplicationContext applicationContext) {
-//        MyWebSocket.applicationContext = applicationContext;
-//
-//    }
+    private static ApplicationContext applicationContext;
+    //数据库连接类
+    private IWsService wsService;
+    //消息
+    private KafkaTemplate kafkaTemplate;
+
+
+    public static void setApplicationContext(ApplicationContext applicationContext) {
+        MyWebSocket.applicationContext = applicationContext;
+
+    }
+
     /**
      * 静态变量，用来记录当前在线连接数。应该把它设计成线程安全的。
      */
@@ -49,7 +55,7 @@ public class MyWebSocket {
     /**
      * 记录当前用户的session对象
      */
-    private static Map<String, Session> sessionPool = new HashMap<String, Session>();
+    private static Map<String, Session> sessionPool = new ConcurrentHashMap<>();
     /**
      * 记录当前用户的session对象
      */
@@ -61,7 +67,18 @@ public class MyWebSocket {
      * @param session
      */
     @OnOpen
-    public void onOpen(Session session) {
+    public void onOpen(Session session, @PathParam("userId") String userId) {
+
+        // 注入
+        if (this.wsService == null) {
+            this.wsService = applicationContext.getBean(IWsService.class);
+        }
+
+        // 注入kafka
+        if (kafkaTemplate == null) {
+            kafkaTemplate = applicationContext.getBean(KafkaTemplate.class); //获取kafka的Bean实例
+        }
+
         this.session = session;
         //加入set中
         webSocketSet.add(this);
@@ -70,7 +87,7 @@ public class MyWebSocket {
         addOnlineCount();
 //       JSONObject obj = JSON.parseObject("{" + message + "}");
 //        String userId = obj.get("userId") + "" + MyWebSocket.onlineCount;
-//        sessionPool.put(userId, session);
+        sessionPool.put(userId, session);
 //        String groupId = obj.get("groupId") + "";
 //        if (groupId != null && !"".equals(groupId) && !"null".equalsIgnoreCase(groupId)) {
 //            sessionGroup.add(groupId);
@@ -93,6 +110,11 @@ public class MyWebSocket {
         //在线数减1
         subOnlineCount();
         System.out.println("有连接关闭。当前在线人数为：" + getOnlineCount());
+        Map<String, String> pathParameters = session.getPathParameters();
+        String userId = pathParameters.get("userId"); //从session中获取userId
+        Map<String, String> map = new HashMap<>();
+        map.put("username", userId);
+        kafkaTemplate.send("closeWebsocket", JSON.toJSONString(map));
     }
 
     /**
@@ -103,7 +125,11 @@ public class MyWebSocket {
      */
     @OnMessage
     public void onMessage(String message, Session session) {
+        System.out.println(wsService.selectAll().toString());
         System.out.println("客户端发送的消息：" + message);
+
+        //TODO 这里可以进行优化。可以首先根据接收方的userId,即receiver_id判断接收方是否在当前服务器，若在，直接获取session发送即可就不需要走Kafka了，节约资源
+        kafkaTemplate.send("chatMessage", s);
     }
 
     /**
@@ -198,11 +224,44 @@ public class MyWebSocket {
             List<String> groupList = socket.sessionGroup;
             if (groupList != null && groupList.size() > 0) {
                 for (String id : groupList) {
-                    if(groupId.equals(id)){
+                    if (groupId.equals(id)) {
                         socket.session.getAsyncRemote().sendText(message);
                     }
                 }
             }
         }
     }
+
+    /**
+     * kafka发送消息监听事件，有消息分发
+     *
+     * @param message
+     * @author lll
+     */
+    public void kafkaReceiveMsg(String message) {
+        JSONObject jsonObject = JSONObject.parseObject(message);
+
+        String receiver_id = jsonObject.getString("receiver_id"); //接受者ID
+
+        if (sessionPool.get(receiver_id) != null) {
+            //进行消息发送
+            try {
+                sessionPool.get(receiver_id).getBasicRemote().sendText(message);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * kafka监听关闭websocket连接
+     *
+     * @param closeMessage
+     */
+    public void kafkaCloseWebsocket(String closeMessage) {
+        JSONObject jsonObject = JSONObject.parseObject(closeMessage);
+        String userId = jsonObject.getString("userId");
+        sessionPool.remove(userId);
+    }
+
 }
