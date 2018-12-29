@@ -3,6 +3,9 @@ package com.mywuwu.kafka.configuration;
 import com.alibaba.druid.util.StringUtils;
 import com.mywuwu.kafka.myListener.MyKafkaListener;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,21 +31,21 @@ import java.util.UUID;
 @EnableKafka
 public class KafkaConsumerConfig {
 
-    @Value("${spring.kafka.bootstrap-servers}")
-    private String servers;
-    @Value("${spring.kafka.consumer.enable-auto-commit}")
-    private String commit;
-    @Value("${spring.kafka.consumer.auto-commit-interval}")
-    private int interval;
-    @Value("${spring.kafka.consumer.auto-offset-reset}")
-    private String reset;
-    @Value("${spring.kafka.consumer.auto-session-timeout}")
-    private int timeout;
-    @Value("${spring.kafka.consumer.key-deserializer}")
-    private int kdeserializer;
-    @Value("${spring.kafka.consumer.value-deserializer}")
-    private int ydeserializer;
 
+    @Value("${kafka.consumer.servers}")
+    private String servers;
+    @Value("${kafka.consumer.enable.auto.commit}")
+    private boolean enableAutoCommit;
+    @Value("${kafka.consumer.session.timeout}")
+    private String sessionTimeout;
+    @Value("${kafka.consumer.auto.commit.interval}")
+    private String autoCommitInterval;
+    @Value("${kafka.consumer.group.id}")
+    private String groupId;
+    @Value("${kafka.consumer.auto.offset.reset}")
+    private String autoOffsetReset;
+    @Value("${kafka.consumer.concurrency}")
+    private int concurrency;
 
     @Bean
     public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, String>> kafkaListenerContainerFactory() {
@@ -59,16 +62,14 @@ public class KafkaConsumerConfig {
 
     public Map<String, Object> consumerConfigs() {
         Map<String, Object> properties = new HashMap<>();
-//        "kafka集群IP1:9092,kafka集群IP2:9092"
         properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, servers);
-        //获取服务器Ip作为groupId 防止如果同组中存在多个监听对象不能结构到消息问题
-        properties.put(ConsumerConfig.GROUP_ID_CONFIG, getIPAddress());
-        properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, commit);
-        properties.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, interval);
-        properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, reset);
-        properties.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, timeout);
-        properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, kdeserializer);
-        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ydeserializer);
+        properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, enableAutoCommit);
+        properties.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, autoCommitInterval);
+        properties.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, sessionTimeout);
+        properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        properties.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+        properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, autoOffsetReset);
         return properties;
     }
 

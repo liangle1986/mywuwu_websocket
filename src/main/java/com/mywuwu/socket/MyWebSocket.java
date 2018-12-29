@@ -1,11 +1,11 @@
 package com.mywuwu.socket;
 
+import com.alibaba.druid.util.StringUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.mywuwu.common.utils.DataMessage;
 import com.mywuwu.service.IWsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
@@ -23,7 +23,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * @Description:
  */
 
-@ServerEndpoint(value = "/mywuwu/websocket/{userId}")
+@ServerEndpoint(value = "/mywuwu/websocket/{token}")
 @Component
 public class MyWebSocket {
 
@@ -67,7 +67,7 @@ public class MyWebSocket {
      * @param session
      */
     @OnOpen
-    public void onOpen(Session session, @PathParam("userId") String userId) {
+    public void onOpen(Session session, @PathParam("token") String token) {
 
         // 注入
         if (this.wsService == null) {
@@ -80,6 +80,7 @@ public class MyWebSocket {
         }
 
         this.session = session;
+
         //加入set中
         webSocketSet.add(this);
 //        System.out.println(wsService.selectAll().toString());
@@ -87,7 +88,7 @@ public class MyWebSocket {
         addOnlineCount();
 //       JSONObject obj = JSON.parseObject("{" + message + "}");
 //        String userId = obj.get("userId") + "" + MyWebSocket.onlineCount;
-        sessionPool.put(userId, session);
+        sessionPool.put(token, session);
 //        String groupId = obj.get("groupId") + "";
 //        if (groupId != null && !"".equals(groupId) && !"null".equalsIgnoreCase(groupId)) {
 //            sessionGroup.add(groupId);
@@ -111,9 +112,9 @@ public class MyWebSocket {
         subOnlineCount();
         System.out.println("有连接关闭。当前在线人数为：" + getOnlineCount());
         Map<String, String> pathParameters = session.getPathParameters();
-        String userId = pathParameters.get("userId"); //从session中获取userId
+        String token = pathParameters.get("token"); //从session中获取userId
         Map<String, String> map = new HashMap<>();
-        map.put("username", userId);
+        map.put("token", token);
         kafkaTemplate.send("closeWebsocket", JSON.toJSONString(map));
     }
 
@@ -125,11 +126,22 @@ public class MyWebSocket {
      */
     @OnMessage
     public void onMessage(String message, Session session) {
-        System.out.println(wsService.selectAll().toString());
-        System.out.println("客户端发送的消息：" + message);
+        try {
+            JSONObject obj = JSON.parseObject(message);
+            String msgType = obj.getString("msgType");
+            if ("20".equals(msgType)) {
+                DataMessage<JSONObject> ms = new DataMessage<>();
+                ms.setData(obj);
+                session.getBasicRemote().sendText(JSON.toJSONString(ms)); //心跳
+                System.out.println("心跳监测" + JSON.toJSONString(ms));
+            } else {
+                sendMessage(message, session); //调用Kafka进行消息分发
+                System.out.println(wsService.selectAll().toString());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-        //TODO 这里可以进行优化。可以首先根据接收方的userId,即receiver_id判断接收方是否在当前服务器，若在，直接获取session发送即可就不需要走Kafka了，节约资源
-        kafkaTemplate.send("chatMessage", s);
     }
 
     /**
@@ -241,12 +253,12 @@ public class MyWebSocket {
     public void kafkaReceiveMsg(String message) {
         JSONObject jsonObject = JSONObject.parseObject(message);
 
-        String receiver_id = jsonObject.getString("receiver_id"); //接受者ID
+        String token = jsonObject.getString("token"); //接受者ID
 
-        if (sessionPool.get(receiver_id) != null) {
+        if (sessionPool.get(token) != null) {
             //进行消息发送
             try {
-                sessionPool.get(receiver_id).getBasicRemote().sendText(message);
+                sessionPool.get(token).getBasicRemote().sendText(message);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -260,8 +272,28 @@ public class MyWebSocket {
      */
     public void kafkaCloseWebsocket(String closeMessage) {
         JSONObject jsonObject = JSONObject.parseObject(closeMessage);
-        String userId = jsonObject.getString("userId");
-        sessionPool.remove(userId);
+        String token = jsonObject.getString("token");
+        sessionPool.remove(token);
+    }
+
+    /**
+     * 发送消息
+     *
+     * @param message
+     * @param session
+     * @throws IOException
+     */
+    public void sendMessage(String message, Session session) {
+        if (!StringUtils.isEmpty(message)) {
+
+            JSONObject jsonObject = JSONObject.parseObject(message);
+
+            String sender_id = jsonObject.getString("sender_id"); //发送者ID
+            String receiver_id = jsonObject.getString("receiver_id"); //接受者ID
+
+            // TODO 这里可以进行优化。可以首先根据接收方的userId,即receiver_id判断接收方是否在当前服务器，若在，直接获取session发送即可就不需要走Kafka了，节约资源
+            kafkaTemplate.send("chatMessage", message);
+        }
     }
 
 }
