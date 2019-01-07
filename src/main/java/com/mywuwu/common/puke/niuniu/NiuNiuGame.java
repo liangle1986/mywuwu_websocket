@@ -387,24 +387,24 @@ public class NiuNiuGame {
      */
     private static List<Person> getUserCardOrder(List<Person> oldList) {
         // 记录要替换的用户
-        Person maxperson = null;
+        Person maxperson = oldList.get(0);
         Person gailiperson = null;
         NiuResult maxNiu = null;
         List<Person> newList = new ArrayList<>();
         // 发牌后调整牌大小给谁
         for (Person person : oldList) {
-            NiuResult one = getNiuResult(person.getCardList());
-            for (Person person1 : oldList) {
-                NiuResult two = getNiuResult(person1.getCardList());
-                if (one.compareTo(two) > -1) {
-                    if (maxperson == null) {
-                        maxperson = person;
-                        maxNiu = getNiuResult(maxperson.getCardList());
-                    } else if (one.compareTo(maxNiu) < 0) {
-                        maxperson = person;
-                    }
-                }
-            }
+//            NiuResult one = getNiuResult(person.getCardList());
+//            for (Person person1 : oldList) {
+//                NiuResult two = getNiuResult(person1.getCardList());
+//                if (one.compareTo(two) > -1) {
+//                    if (maxperson == null) {
+//                        maxperson = person;
+//                        maxNiu = getNiuResult(maxperson.getCardList());
+//                    } else if (one.compareTo(maxNiu) < 0) {
+//                        maxperson = person;
+//                    }
+//                }
+//            }
 
             // 记录
             if (person.getGailv() == 1) {
@@ -417,7 +417,8 @@ public class NiuNiuGame {
          * 计算完成替换
          */
         for (Person person : oldList) {
-            Person newPer = person;
+            Person newPer = new Person(person.getName(), person.getGailv());
+            newPer.setCardList(person.getCardList());
             if (person.getName().equals(gailiperson.getName())) {
                 newPer.setCardList(maxperson.getCardList());
             } else if (person.getName().equals(maxperson.getName())) {
