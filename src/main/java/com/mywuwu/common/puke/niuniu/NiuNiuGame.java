@@ -258,8 +258,6 @@ public class NiuNiuGame {
                 }
             }
         }
-        ConcurrentHashMapCacheUtils.setCache(gameUUid, gamePersonList);
-        showResult(gameUUid);
         if (toOpen == 1)
             gamePersonList = getUserCardOrder(gamePersonList);
 
