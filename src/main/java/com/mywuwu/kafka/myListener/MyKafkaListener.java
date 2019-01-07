@@ -1,5 +1,6 @@
 package com.mywuwu.kafka.myListener;
 
+import com.mywuwu.service.IWsService;
 import com.mywuwu.socket.MyWebSocket;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
