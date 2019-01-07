@@ -23,7 +23,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * @Description:
  */
 
-@ServerEndpoint(value = "/mywuwu/websocket/{token}")
+@ServerEndpoint(value = "/mywuwu/websocket")
 @Component
 public class MyWebSocket {
 
@@ -67,8 +67,9 @@ public class MyWebSocket {
      * @param session
      */
     @OnOpen
-    public void onOpen(Session session, @PathParam("token") String token) {
+    public void onOpen(Session session) {
 
+//        String token = session.getPathParameters().get("token");
         // 注入
         if (this.wsService == null) {
             this.wsService = applicationContext.getBean(IWsService.class);
@@ -81,14 +82,14 @@ public class MyWebSocket {
 
         this.session = session;
 
-        //加入set中
-        webSocketSet.add(this);
+//        加入set中
+//        webSocketSet.add(this);
 //        System.out.println(wsService.selectAll().toString());
         //添加在线人数
         addOnlineCount();
 //       JSONObject obj = JSON.parseObject("{" + message + "}");
 //        String userId = obj.get("userId") + "" + MyWebSocket.onlineCount;
-        sessionPool.put(token, session);
+//        sessionPool.put(token, session);
 //        String groupId = obj.get("groupId") + "";
 //        if (groupId != null && !"".equals(groupId) && !"null".equalsIgnoreCase(groupId)) {
 //            sessionGroup.add(groupId);
@@ -111,8 +112,8 @@ public class MyWebSocket {
         //在线数减1
         subOnlineCount();
         System.out.println("有连接关闭。当前在线人数为：" + getOnlineCount());
-        Map<String, String> pathParameters = session.getPathParameters();
-        String token = pathParameters.get("token"); //从session中获取userId
+//        Map<String, String> pathParameters = session.getQueryString();
+        String token =  session.getQueryString(); //从session中获取userId
         Map<String, String> map = new HashMap<>();
         map.put("token", token);
         kafkaTemplate.send("closeWebsocket", JSON.toJSONString(map));
@@ -129,6 +130,13 @@ public class MyWebSocket {
         try {
             JSONObject obj = JSON.parseObject(message);
             String msgType = obj.getString("msgType");
+            String token = obj.getString("token");
+            System.out.println(token + "ssssssssssssssssssssvvvvvv");
+            this.session = session;
+            if("1".equals(msgType)){
+                sessionPool.put(token, session);
+                webSocketSet.add(this);
+            }
             if ("20".equals(msgType)) {
                 DataMessage<JSONObject> ms = new DataMessage<>();
                 ms.setData(obj);
