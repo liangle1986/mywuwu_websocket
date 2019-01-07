@@ -258,6 +258,7 @@ public class NiuNiuGame {
                 }
             }
         }
+
         if (toOpen == 1)
             gamePersonList = getUserCardOrder(gamePersonList);
 
@@ -268,17 +269,7 @@ public class NiuNiuGame {
     public static void showResult(String gameUUid) {
         List<Person> gamePersonList = (List<Person>) ConcurrentHashMapCacheUtils.getCache(gameUUid);
 
-        Collections.sort(gamePersonList, new Comparator<Person>() {
-            public int compare(Person o1, Person o2) {
-                List<Card> personOneCards = o1.getCardList();
-                List<Card> personTwoCards = o2.getCardList();
-
-                NiuResult oneResult = getNiuResult(personOneCards);
-                NiuResult twoResult = getNiuResult(personTwoCards);
-
-                return oneResult.compareTo(twoResult);
-            }
-        });
+        getMaxToMinOrder(gamePersonList);
 
 //        Person winPerson = gamePersonList.get(0);
 //        System.out.println("this is winner ...");
@@ -316,6 +307,36 @@ public class NiuNiuGame {
         map = new HashMap<>();
         map.put("name", "zhang");
         map.put("gail", "1");
+        userList.add(map);
+
+        map = new HashMap<>();
+        map.put("name", "aaaaa");
+        map.put("gail", "0");
+        userList.add(map);
+
+        map = new HashMap<>();
+        map.put("name", "bbbbb");
+        map.put("gail", "0");
+        userList.add(map);
+
+        map = new HashMap<>();
+        map.put("name", "ccccc");
+        map.put("gail", "0");
+        userList.add(map);
+
+        map = new HashMap<>();
+        map.put("name", "ddddd");
+        map.put("gail", "0");
+        userList.add(map);
+
+        map = new HashMap<>();
+        map.put("name", "eeee");
+        map.put("gail", "0");
+        userList.add(map);
+
+        map = new HashMap<>();
+        map.put("name", "fffff");
+        map.put("gail", "0");
         userList.add(map);
         String gameUUid = createGame(userList.size(), userList);
         sendCard(gameUUid);
@@ -384,26 +405,16 @@ public class NiuNiuGame {
      * @return 概率牌
      */
     private static List<Person> getUserCardOrder(List<Person> oldList) {
+
+        // 排序
+        getMaxToMinOrder(oldList);
+
         // 记录要替换的用户
         Person maxperson = oldList.get(0);
         Person gailiperson = null;
-        NiuResult maxNiu = null;
         List<Person> newList = new ArrayList<>();
         // 发牌后调整牌大小给谁
         for (Person person : oldList) {
-//            NiuResult one = getNiuResult(person.getCardList());
-//            for (Person person1 : oldList) {
-//                NiuResult two = getNiuResult(person1.getCardList());
-//                if (one.compareTo(two) > -1) {
-//                    if (maxperson == null) {
-//                        maxperson = person;
-//                        maxNiu = getNiuResult(maxperson.getCardList());
-//                    } else if (one.compareTo(maxNiu) < 0) {
-//                        maxperson = person;
-//                    }
-//                }
-//            }
-
             // 记录
             if (person.getGailv() == 1) {
                 gailiperson = person;
@@ -425,5 +436,25 @@ public class NiuNiuGame {
             newList.add(newPer);
         }
         return newList;
+    }
+
+
+    /**
+     * 从大到小排序
+     *
+     * @param personList 用户牌信息
+     */
+    private static void getMaxToMinOrder(List<Person> personList) {
+        Collections.sort(personList, new Comparator<Person>() {
+            public int compare(Person o1, Person o2) {
+                List<Card> personOneCards = o1.getCardList();
+                List<Card> personTwoCards = o2.getCardList();
+
+                NiuResult oneResult = getNiuResult(personOneCards);
+                NiuResult twoResult = getNiuResult(personTwoCards);
+
+                return oneResult.compareTo(twoResult);
+            }
+        });
     }
 }
