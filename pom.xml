@@ -12,6 +12,7 @@
     <artifactId>mywuwu_websocket</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>mywuwu_websocket</name>
+    <packaging>war</packaging>
     <description>Demo project for Spring Boot</description>
 
     <properties>
@@ -97,8 +98,11 @@
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
-
-
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>

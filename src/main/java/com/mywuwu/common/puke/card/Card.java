@@ -14,9 +14,23 @@ public class Card implements Comparable {
     private String color;
     private String value;
 
+    /**
+     * 0:展示 1:不展示
+     */
+    private int status;
+
     public Card(String color, String value) {
         this.color = color;
         this.value = value;
+        this.status = 0;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
     }
 
     public String getColor() {
