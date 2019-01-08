@@ -14,10 +14,10 @@ import tk.mybatis.spring.annotation.MapperScan;
 public class MywuwuWebsocketApplication {
 
 	public static void main(String[] args) {
-//		SpringApplication.run(MywuwuWebsocketApplication.class, args);
-		SpringApplication springApplication = new SpringApplication(MywuwuWebsocketApplication.class);
-		ConfigurableApplicationContext configurableApplicationContext = springApplication.run(args);
-		MyWebSocket.setApplicationContext(configurableApplicationContext);//解决WebSocket不能注入的问题
+		SpringApplication.run(MywuwuWebsocketApplication.class, args);
+//		SpringApplication springApplication = new SpringApplication(MywuwuWebsocketApplication.class);
+//		ConfigurableApplicationContext configurableApplicationContext = springApplication.run(args);
+//		MyWebSocket.setApplicationContext(configurableApplicationContext);//解决WebSocket不能注入的问题
 	}
 
 }

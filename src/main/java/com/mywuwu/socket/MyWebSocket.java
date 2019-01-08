@@ -7,6 +7,8 @@ import com.mywuwu.service.IGameLogin;
 import com.mywuwu.service.IGameNotice;
 import com.mywuwu.service.IWsService;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
@@ -28,18 +30,18 @@ import java.util.concurrent.CopyOnWriteArraySet;
 @ServerEndpoint(value = "/mywuwu/websocket")
 @Component
 public class MyWebSocket {
-
+    private final static Logger logger = LoggerFactory.getLogger(MyWebSocket.class);
     private static ApplicationContext applicationContext;
     //数据库连接类
-    private IWsService wsService;
+    public static IWsService wsService;
 
     // 游戏登录操作
-    private IGameLogin gameLogin;
+    public static IGameLogin gameLogin;
     //消息
-    private KafkaTemplate kafkaTemplate;
+    public static KafkaTemplate kafkaTemplate;
 
     // 公告
-    private IGameNotice gameNotice;
+    public static IGameNotice gameNotice;
 
 
     public static void setApplicationContext(ApplicationContext applicationContext) {
@@ -76,27 +78,37 @@ public class MyWebSocket {
      */
     @OnOpen
     public void onOpen(Session session) {
+//        try {
+//
+//            // 注入
+//            if (this.wsService == null) {
+//                this.wsService = this.applicationContext.getBean(IWsService.class);
+//                System.out.println("看看看有没有进入--------------");
+//            }
+//
+//            // 注入kafka
+//            if (this.kafkaTemplate == null) {
+//                this.kafkaTemplate = applicationContext.getBean(KafkaTemplate.class); //获取kafka的Bean实例
+//            }
+//            // 登录信息
+//            if (this.gameLogin == null) {
+//                this.gameLogin = applicationContext.getBean(IGameLogin.class);
+//            }
+//            /**
+//             * 公告
+//             */
+//            if (this.gameNotice == null) {
+//                this.gameNotice = applicationContext.getBean(IGameNotice.class);
+//            }
+//        } catch (Exception e){
+//            System.out.println(e.getMessage());
+//            logger.error(e.getMessage());
+//        }
 
-        // 注入
-        if (this.wsService == null) {
-            this.wsService = applicationContext.getBean(IWsService.class);
-        }
-
-        // 注入kafka
-        if (kafkaTemplate == null) {
-            kafkaTemplate = applicationContext.getBean(KafkaTemplate.class); //获取kafka的Bean实例
-        }
-        // 登录信息
-        if(gameLogin == null){
-            gameLogin = applicationContext.getBean(IGameLogin.class);
-        }
-        /**
-         * 公告
-         */
-        if(gameNotice == null){
-            gameNotice = applicationContext.getBean(IGameNotice.class);
-        }
-
+        System.out.println("注入的类是否真的注入了" +  this.gameLogin);
+        webSocketSet.add(this);
+        this.session = session;
+        sessionPool.put(session.getId(), session);
         //添加在线人数
         addOnlineCount();
         try {
@@ -116,7 +128,6 @@ public class MyWebSocket {
         webSocketSet.remove(this);
         //在线数减1
         subOnlineCount();
-        System.out.println("有连接关闭。当前在线人数为：" + getOnlineCount());
         Map<String, String> pathParameters = session.getPathParameters();
         String token = pathParameters.get("token"); //从session中获取userId
         Map<String, String> map = new HashMap<>();
@@ -142,12 +153,7 @@ public class MyWebSocket {
                 ms.setMsgType(20);
                 ms.setGameType(0);
                 session.getBasicRemote().sendText(JSON.toJSONString(ms)); //心跳
-                System.out.println("心跳监测" + message);
             } else {
-                if("1".equals(msgType)){
-                    sessionPool.put(session.getId(), session);
-                    webSocketSet.add(this);
-                }
                 sendMessage(message, session); //调用Kafka进行消息分发
                 System.out.println(wsService.selectAll().toString());
             }
@@ -192,8 +198,9 @@ public class MyWebSocket {
      */
     @OnError
     public void onError(Session session, Throwable error) {
-        System.out.println("----websocket-------有异常啦");
-        error.printStackTrace();
+        sessionPool.remove(session.getId());
+        sessionPool.remove(this);
+//        error.printStackTrace();
     }
 
     /**
@@ -218,18 +225,6 @@ public class MyWebSocket {
     public static synchronized int getOnlineCount() {
         return onlineCount;
     }
-
-    /**
-     * 发送信息
-     *
-     * @param message
-     * @throws IOException
-     */
-//    public void sendAllMessage(String message) throws IOException {
-//        //获取session远程基本连接发送文本消息
-//        this.session.getBasicRemote().sendText(message);
-//        //this.session.getAsyncRemote().sendText(message);
-//    }
 
     // 此为单点消息
     public void sendOneMessage(String userId, String message) {
@@ -266,11 +261,11 @@ public class MyWebSocket {
      */
     public void kafkaReceiveMsg(String message) {
         JSONObject jsonObject = JSONObject.parseObject(message);
-        String token = jsonObject.getString("token");
-        if (sessionPool.get(token) != null) {
+        String sessionId = this.session.getId();
+        if (sessionPool.get(sessionId) != null) {
             //进行消息发送
             try {
-                sessionPool.get(token).getBasicRemote().sendText(message);
+                sessionPool.get(sessionId).getBasicRemote().sendText(message);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -283,9 +278,9 @@ public class MyWebSocket {
      * @param closeMessage
      */
     public void kafkaCloseWebsocket(String closeMessage) {
-        JSONObject jsonObject = JSONObject.parseObject(closeMessage);
-        String token = jsonObject.getString("token");
-        sessionPool.remove(token);
+        // 有业务需要处理
+        sessionPool.remove(this.session.getId());
+        sessionPool.remove(this);
     }
 
     /**
@@ -301,24 +296,22 @@ public class MyWebSocket {
             if (StringUtils.isNotEmpty(message)) {
                 JSONObject obj = JSON.parseObject(message);
                 String msgType = obj.getString("msgType");
-                String token = obj.getString("token");
-
+                String sessionId = session.getId();
+                System.out.println("接收到消息=========================" + message);
                 // 公告
                 if ("50".equals(msgType)) {
-                    ms = gameNotice.noticeContent();
+                    ms = this.gameNotice.noticeContent();
                 } else if ("1".equals(msgType)) {
 
-                   ms = gameLogin.loginMessage(message);
+                    ms = this.gameLogin.loginMessage(message);
 //                    ms = this.loginMessage(message);
                 }
-                ms.setToken(session.getId());
-
 
                 // 发送信息
-                if (sessionPool.get(token) != null) {
-                    sessionPool.get(token).getBasicRemote().sendText(JSON.toJSONString(ms));
+                if (sessionPool.get(sessionId) != null) {
+                    sessionPool.get(sessionId).getBasicRemote().sendText(JSON.toJSONString(ms));
                 } else {
-                kafkaTemplate.send("chatMessage", JSON.toJSONString(ms));
+                    kafkaTemplate.send("chatMessage", JSON.toJSONString(ms));
                 }
             }
         } catch (Exception e) {

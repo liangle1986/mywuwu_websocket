@@ -1,7 +1,12 @@
 package com.mywuwu.socket;
 
+import com.mywuwu.service.IGameLogin;
+import com.mywuwu.service.IGameNotice;
+import com.mywuwu.service.IWsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.socket.server.standard.ServerEndpointExporter;
 
 /**
@@ -20,5 +25,21 @@ public class WebSocketConfig {
     @Bean
     public ServerEndpointExporter serverEndpointExporter() {
         return new ServerEndpointExporter();
+    }
+    @Autowired
+    public void setWsService(IWsService wsService) {
+        MyWebSocket.wsService = wsService;
+    }
+    @Autowired
+    public void setGameLoginService(IGameLogin gameLogin) {
+        MyWebSocket.gameLogin = gameLogin;
+    }
+    @Autowired
+    public void setKafkaTemplate(KafkaTemplate kafkaTemplate) {
+        MyWebSocket.kafkaTemplate = kafkaTemplate;
+    }
+    @Autowired
+    public void setGameNoticeService(IGameNotice gameNotice) {
+        MyWebSocket.gameNotice = gameNotice;
     }
 }

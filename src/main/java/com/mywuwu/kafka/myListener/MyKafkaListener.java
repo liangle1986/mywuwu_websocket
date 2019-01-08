@@ -22,6 +22,7 @@ public class MyKafkaListener {
     @KafkaListener(topics = {"chatMessage"})
     public void listen(ConsumerRecord<?, ?> record) {
         logger.info("chatMessage发送聊天消息监听："+record.value().toString());
+        System.out.println("chatMessage发送聊天消息监听："+record.value().toString());
         MyWebSocket chatWebsocket = new MyWebSocket();
         chatWebsocket.kafkaReceiveMsg(record.value().toString());
     }
