@@ -120,7 +120,7 @@ public class MyWebSocket {
         Map<String, String> pathParameters = session.getPathParameters();
         String token = pathParameters.get("token"); //从session中获取userId
         Map<String, String> map = new HashMap<>();
-        map.put("token", token);
+        map.put("token", session.getId());
         kafkaTemplate.send("closeWebsocket", JSON.toJSONString(map));
     }
 
@@ -145,7 +145,7 @@ public class MyWebSocket {
                 System.out.println("心跳监测" + message);
             } else {
                 if("1".equals(msgType)){
-                    sessionPool.put(token, session);
+                    sessionPool.put(session.getId(), session);
                     webSocketSet.add(this);
                 }
                 sendMessage(message, session); //调用Kafka进行消息分发
@@ -311,7 +311,7 @@ public class MyWebSocket {
                    ms = gameLogin.loginMessage(message);
 //                    ms = this.loginMessage(message);
                 }
-                ms.setToken(token);
+                ms.setToken(session.getId());
 
 
                 // 发送信息
