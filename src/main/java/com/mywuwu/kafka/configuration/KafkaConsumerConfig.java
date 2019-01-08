@@ -1,6 +1,7 @@
 package com.mywuwu.kafka.configuration;
 
 import com.alibaba.druid.util.StringUtils;
+import com.mywuwu.kafka.myListener.KafkaUserLoginListener;
 import com.mywuwu.kafka.myListener.MyKafkaListener;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -91,5 +92,10 @@ public class KafkaConsumerConfig {
     @Bean
     public MyKafkaListener listener() {
         return new MyKafkaListener();
+    }
+
+    @Bean
+    public KafkaUserLoginListener loginListener() {
+        return new KafkaUserLoginListener();
     }
 }

@@ -52,6 +52,11 @@
             <artifactId>spring-boot-starter-websocket</artifactId>
             <version>2.1.1.RELEASE</version>
         </dependency>
+     <!--   <dependency>
+            <groupId>org.yeauty</groupId>
+            <artifactId>netty-websocket-spring-boot-starter</artifactId>
+            <version>0.7.3</version>
+        </dependency>-->
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>

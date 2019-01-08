@@ -31,7 +31,6 @@ import java.util.concurrent.CopyOnWriteArraySet;
 @Component
 public class MyWebSocket {
     private final static Logger logger = LoggerFactory.getLogger(MyWebSocket.class);
-    private static ApplicationContext applicationContext;
     //数据库连接类
     public static IWsService wsService;
 
@@ -42,12 +41,6 @@ public class MyWebSocket {
 
     // 公告
     public static IGameNotice gameNotice;
-
-
-    public static void setApplicationContext(ApplicationContext applicationContext) {
-        MyWebSocket.applicationContext = applicationContext;
-
-    }
 
     /**
      * 静态变量，用来记录当前在线连接数。应该把它设计成线程安全的。
@@ -78,44 +71,11 @@ public class MyWebSocket {
      */
     @OnOpen
     public void onOpen(Session session) {
-//        try {
-//
-//            // 注入
-//            if (this.wsService == null) {
-//                this.wsService = this.applicationContext.getBean(IWsService.class);
-//                System.out.println("看看看有没有进入--------------");
-//            }
-//
-//            // 注入kafka
-//            if (this.kafkaTemplate == null) {
-//                this.kafkaTemplate = applicationContext.getBean(KafkaTemplate.class); //获取kafka的Bean实例
-//            }
-//            // 登录信息
-//            if (this.gameLogin == null) {
-//                this.gameLogin = applicationContext.getBean(IGameLogin.class);
-//            }
-//            /**
-//             * 公告
-//             */
-//            if (this.gameNotice == null) {
-//                this.gameNotice = applicationContext.getBean(IGameNotice.class);
-//            }
-//        } catch (Exception e){
-//            System.out.println(e.getMessage());
-//            logger.error(e.getMessage());
-//        }
-
-        System.out.println("注入的类是否真的注入了" +  this.gameLogin);
         webSocketSet.add(this);
         this.session = session;
         sessionPool.put(session.getId(), session);
         //添加在线人数
         addOnlineCount();
-        try {
-            this.sendInfo(session.getId() + "登录了");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         System.out.println("新连接接入。当前在线人数为：" + getOnlineCount());
     }
 
@@ -163,32 +123,6 @@ public class MyWebSocket {
 
     }
 
-    /**
-     * 暴露给外部的群发
-     *
-     * @param message
-     * @throws IOException
-     */
-    public static void sendInfo(String message) throws IOException {
-        sendAll(message);
-    }
-
-    /**
-     * 群发
-     *
-     * @param message
-     */
-    private static void sendAll(String message) {
-//        Arrays.asList(webSocketSet.toArray()).forEach(item -> {
-//            MyWebSocket myWebSocket = (MyWebSocket) item;
-//            //群发
-//            try {
-//                myWebSocket.sendAllMessage(message);
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        });
-    }
 
     /**
      * 发生错误时调用
@@ -200,7 +134,6 @@ public class MyWebSocket {
     public void onError(Session session, Throwable error) {
         sessionPool.remove(session.getId());
         sessionPool.remove(this);
-//        error.printStackTrace();
     }
 
     /**
@@ -225,6 +158,7 @@ public class MyWebSocket {
     public static synchronized int getOnlineCount() {
         return onlineCount;
     }
+
 
     // 此为单点消息
     public void sendOneMessage(String userId, String message) {
@@ -313,6 +247,7 @@ public class MyWebSocket {
                 } else {
                     kafkaTemplate.send("chatMessage", JSON.toJSONString(ms));
                 }
+                kafkaTemplate.send("updateUserStatus", JSON.toJSONString(ms));
             }
         } catch (Exception e) {
         }
