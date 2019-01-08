@@ -30,7 +30,6 @@ public class GameLoginImpl implements IGameLogin {
         try {
             if (StringUtils.isNotEmpty(message)) {
                 JSONObject obj = JSON.parseObject(message);
-                String token = obj.getString("token");
                 String msgType = obj.getString("msgType");
                 String gameType = obj.getString("gameType");
                 ms.setMsgType(StringUtils.isNumeric(msgType) ? Integer.valueOf(msgType) : 0);

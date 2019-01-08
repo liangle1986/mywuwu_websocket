@@ -43,7 +43,7 @@ public class DataMessage<T> {
     /**
      * token
      */
-    private String token;
+//    private String token;
 
     public int getCode() {
         return code;
@@ -77,20 +77,20 @@ public class DataMessage<T> {
         this.data = data;
     }
 
-    public String getToken() {
-        return token;
-    }
+//    public String getToken() {
+//        return token;
+//    }
+//
+//    public void setToken(String token) {
+//        this.token = token;
+//    }
 
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-    public DataMessage(int code, int msgType, int gameType, T data, String token) {
+    public DataMessage(int code, int msgType, int gameType, T data) {
         this.code = code;
         this.msgType = msgType;
         this.gameType = gameType;
         this.data = data;
-        this.token = token;
+//        this.token = token;
     }
 
     public DataMessage() {
