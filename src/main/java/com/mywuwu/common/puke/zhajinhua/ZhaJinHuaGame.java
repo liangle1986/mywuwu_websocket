@@ -1,4 +1,4 @@
-package com.mywuwu.common.puke.doudizhu;
+package com.mywuwu.common.puke.zhajinhua;
 
 import com.alibaba.fastjson.JSON;
 import com.mywuwu.common.puke.card.Card;
@@ -12,10 +12,16 @@ import java.util.*;
 
 /**
  * @Auther: 梁乐乐
- * @Date: 2019/1/8 18:14
+ * @Date: 2019/1/9 11:30
  * @Description:
  */
-public class DouDiZhuGame {
+public class ZhaJinHuaGame {
+
+    /**
+     * 最大支持玩家数目, 因为单副牌只有那么多, 修改发牌实现支持更多的玩家数目
+     */
+    private static final Integer MAX_PLAYER_COUNT = 10; // 50 / 3 = 17
+
     /**
      * 创建游戏
      */
@@ -24,8 +30,11 @@ public class DouDiZhuGame {
         if (count > objList.size()) {
             throw new RuntimeException("params is error");
         }
+        if (count > MAX_PLAYER_COUNT) {
+            throw new RuntimeException("player count is more than " + MAX_PLAYER_COUNT);
+        }
 
-        String gameUUid = MyWuWuStrUtils.getYanString("mywuwuGame");
+        String gameUUid = MyWuWuStrUtils.getYanString("mywuwuZJHGame");
         List<Person> gamePersonList = new ArrayList<Person>();
         for (int i = 0; i < count; i++) {
             int to = StringUtils.isNumeric(objList.get(i).get("gail")) ? Integer.valueOf(objList.get(i).get("gail")) : 0;
@@ -42,12 +51,13 @@ public class DouDiZhuGame {
      */
     public static void sendCard(String gameUUid) {
         List<Card> pokers = PokerUtils.getNewPokers();
+        PokerUtils.deleteCard(Arrays.asList(new Card(Card.POKER_COLOR_LIST.get(1), Card.MAX_KING), new Card(Card.POKER_COLOR_LIST.get(0), Card.SMALL_KING)), pokers);
         PokerUtils.Shuffle(pokers);
         List<Person> gamePersonList = (List<Person>) ConcurrentHashMapCacheUtils.getCache(gameUUid);
 
         int personCount = gamePersonList.size();
 
-        for (int i = 0; i < 17; i++) {
+        for (int i = 0; i < 3; i++) {
             for (int index = 0; index < personCount; index++) {
                 List<Card> cardList = gamePersonList.get(index).getCardList();
                 cardList.add(pokers.get(0));
@@ -55,23 +65,15 @@ public class DouDiZhuGame {
             }
 
         }
-        ConcurrentHashMapCacheUtils.setCache(gameUUid+ "_dipai", pokers);
         ConcurrentHashMapCacheUtils.setCache(gameUUid, gamePersonList);
     }
 
     public static void showResult(String gameUUid) {
         List<Person> gamePersonList = (List<Person>) ConcurrentHashMapCacheUtils.getCache(gameUUid);
-        // 排序
-//        getMaxToMinOrder(gamePersonList);
 
         for (int index = 0; index < gamePersonList.size(); index++) {
             Person person = gamePersonList.get(index);
             showPerson(person);
-        }
-        // 剩余扑克
-        List<Card>  overPokers = (List<Card>) ConcurrentHashMapCacheUtils.getCache(gameUUid+ "_dipai");
-        for (Card card : overPokers){
-            System.out.println(card.toString());
         }
     }
 
@@ -81,6 +83,12 @@ public class DouDiZhuGame {
 //        for (Card card : person.getCardList()) {
 //            System.out.println(card);
 //        }
+
+        System.out.println("是否顺子" + PokerUtils.isStraight(person.getCardList(), true));
+        System.out.println("是否同花" + PokerUtils.verifyIsSameFlower(person.getCardList()));
+        System.out.println("是否炸弹" + PokerUtils.isBmob(person.getCardList()));
+        System.out.println("是否对子" + PokerUtils.isDouble(person.getCardList()));
+        System.out.println("是否532" + PokerUtils.isSpecial(person.getCardList()));
         System.out.println(JSON.toJSONString(person.getCardList()));
     }
 
@@ -94,7 +102,7 @@ public class DouDiZhuGame {
             public int compare(Person o1, Person o2) {
                 List<Card> personOneCards = o1.getCardList();
                 List<Card> personTwoCards = o2.getCardList();
-               return PokerUtils.commCompareToNoColor(personOneCards,personTwoCards);
+                return PokerUtils.commCompareToNoColor(personOneCards, personTwoCards);
             }
         });
     }
@@ -103,19 +111,32 @@ public class DouDiZhuGame {
     public static void main(String[] args) {
         List<Map<String, String>> userList = new ArrayList<>();
         Map<String, String> map = new HashMap<>();
-        map.put("name", "qibin1");
+        map.put("name", "qibin2");
         map.put("gail", "0");
         userList.add(map);
         map = new HashMap<>();
-        map.put("name", "yan1");
+        map.put("name", "yan2");
         map.put("gail", "0");
         userList.add(map);
         map = new HashMap<>();
-        map.put("name", "zhang1");
+        map.put("name", "zhang2");
         map.put("gail", "1");
         userList.add(map);
         String gameUUid = createGame(userList.size(), userList);
-        sendCard(gameUUid);
-        showResult(gameUUid);
+//        sendCard(gameUUid);
+//        showResult(gameUUid);
+
+        List<Card> list = new ArrayList<>();
+        Card card = new Card(Card.POKER_COLOR_LIST.get(0),Card.POKER_VALUE_LIST.get(9));
+        list.add(card);
+        card = new Card(Card.POKER_COLOR_LIST.get(1),Card.POKER_VALUE_LIST.get(11));
+        list.add(card);
+        card = new Card(Card.POKER_COLOR_LIST.get(2),Card.POKER_VALUE_LIST.get(12));
+        list.add(card);
+        System.out.println("是否顺子" + PokerUtils.isStraight(list, true));
+        System.out.println("是否同花" + PokerUtils.verifyIsSameFlower(list));
+        System.out.println("是否炸弹" + PokerUtils.isBmob(list));
+        System.out.println("是否对子" + PokerUtils.isDouble(list));
+        System.out.println("是否532" + PokerUtils.isSpecial(list));
     }
 }

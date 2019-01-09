@@ -246,4 +246,44 @@ public class PokerUtils {
 ////        System.out.println(new Card(Card.POKER_COLOR_LIST.get(1), Card.CARD_MAX_KING).compareTo(new Card(Card.POKER_COLOR_LIST.get(0), Card.SMALL_KING)));
 
     }
+
+
+    // 判断牌型、计算牌型绝对值大小
+    public void regPlayerType(List<Card> cardList) {
+
+    }
+/*******************************************炸金花*******************************/
+    /**
+     * 是否顺子,A32也是同花顺，是最小的同花顺(参考自百度百科)
+     * 花色参与比较的时候，黑桃A红桃3黑桃2<方片A黑桃3方片2
+     */
+    public static boolean isStraight(List<Card> cardList, boolean isA32) {
+        boolean isStraight = false;
+        cardList.sort(Collections.reverseOrder());
+        if (Card.POKER_VALUE_LIST.indexOf(cardList.get(0).getValue()) == Card.POKER_VALUE_LIST.indexOf(cardList.get(1).getValue()) - 1 && Card.POKER_VALUE_LIST.indexOf(cardList.get(1).getValue()) == Card.POKER_VALUE_LIST.indexOf(cardList.get(2).getValue()) - 1) {
+            return true;
+        } else if (isA32) {
+            return Card.POKER_VALUE_LIST.indexOf(cardList.get(0).getValue()) == 0 && Card.POKER_VALUE_LIST.indexOf(cardList.get(1).getValue()) == 11 && Card.POKER_VALUE_LIST.indexOf(cardList.get(2).getValue()) == 12;
+        } else {
+            return false;
+        }
+    }
+
+    // 是否炸弹
+    public static boolean isBmob(List<Card> cardList) {
+        return Card.POKER_VALUE_LIST.indexOf(cardList.get(0).getValue()) == Card.POKER_VALUE_LIST.indexOf(cardList.get(1).getValue())
+                && Card.POKER_VALUE_LIST.indexOf(cardList.get(1).getValue()) == Card.POKER_VALUE_LIST.indexOf(cardList.get(2).getValue());
+    }
+
+    // 是否对子
+    public static boolean isDouble(List<Card> cardList) {
+        return Card.POKER_VALUE_LIST.indexOf(cardList.get(0).getValue()) == Card.POKER_VALUE_LIST.indexOf(cardList.get(1).getValue())
+                || Card.POKER_VALUE_LIST.indexOf(cardList.get(1).getValue()) == Card.POKER_VALUE_LIST.indexOf(cardList.get(2).getValue());
+    }
+
+    // 是否特殊牌
+    public static boolean isSpecial(List<Card> cardList) {
+        cardList.sort(Collections.reverseOrder());
+        return "5".equals(cardList.get(0).getValue()) && "3".equals(cardList.get(1).getValue()) && "2".equals(cardList.get(2).getValue());
+    }
 }
