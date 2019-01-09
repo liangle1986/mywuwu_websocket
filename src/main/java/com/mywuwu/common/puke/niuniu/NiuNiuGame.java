@@ -267,18 +267,7 @@ public class NiuNiuGame {
 
     public static void showResult(String gameUUid) {
         List<Person> gamePersonList = (List<Person>) ConcurrentHashMapCacheUtils.getCache(gameUUid);
-
-        Collections.sort(gamePersonList, new Comparator<Person>() {
-            public int compare(Person o1, Person o2) {
-                List<Card> personOneCards = o1.getCardList();
-                List<Card> personTwoCards = o2.getCardList();
-
-                NiuResult oneResult = getNiuResult(personOneCards);
-                NiuResult twoResult = getNiuResult(personTwoCards);
-
-                return oneResult.compareTo(twoResult);
-            }
-        });
+        getMaxToMinOrder(gamePersonList);
 
 //        Person winPerson = gamePersonList.get(0);
 //        System.out.println("this is winner ...");
@@ -299,7 +288,6 @@ public class NiuNiuGame {
         for (Card card : person.getCardList()) {
             System.out.println(card);
         }
-        System.out.println("result is : " + getNiuResult(person.getCardList()));
     }
 
 
