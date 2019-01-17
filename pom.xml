@@ -12,7 +12,7 @@
     <artifactId>mywuwu_websocket</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>mywuwu_websocket</name>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
     <description>Demo project for Spring Boot</description>
 
     <properties>
@@ -20,6 +20,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
+        <!--<netty.version>5.0.0.Alpha2</netty.version>-->
+        <!--properties节点中设置docker镜像的前缀“springboot”-->
+        <docker.image.prefix>mywuwu</docker.image.prefix>
     </properties>
 
     <dependencies>
@@ -122,7 +125,12 @@
             <artifactId>httpclient</artifactId>
             <version>4.5.6</version>
         </dependency>
-
+        <!-- netty -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>${netty.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -138,7 +146,27 @@
                         <version>1.2.5.RELEASE</version>
                     </dependency>
                 </dependencies>
+                <!--这里写上main方法所在类的路径-->
+                <configuration>
+                    <mainClass>com.mywuwu.MywuwuWebsocketApplication</mainClass>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
+            <!--<plugin>-->
+                <!--<groupId>org.apache.maven.plugins</groupId>-->
+                <!--<artifactId>maven-surefire-plugin</artifactId>-->
+                <!--<version>2.20.1</version>-->
+                <!--<configuration>-->
+                    <!--&lt;!&ndash; 不指定单元测试 &ndash;&gt;-->
+                    <!--<skipTests>true</skipTests>-->
+                <!--</configuration>-->
+            <!--</plugin>-->
             <plugin>
                 <groupId>org.mybatis.generator</groupId>
                 <artifactId>mybatis-generator-maven-plugin</artifactId>
@@ -162,6 +190,22 @@
                 </dependencies>
             </plugin>
 
+            <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>0.4.3</version>
+                <configuration>
+                    <imageName>${docker.image.prefix}/${project.artifactId}</imageName>
+                    <dockerDirectory>src/main/docker</dockerDirectory>
+                    <resources>
+                        <resource>
+                            <targetPath>/</targetPath>
+                            <directory>${project.build.directory}</directory>
+                            <include>${project.build.finalName}.jar</include>
+                        </resource>
+                    </resources>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
