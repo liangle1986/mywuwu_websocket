@@ -1,0 +1,7 @@
+FROM java:8-alpine
+VOLUME /tmp
+ADD mywuwu_websocket-0.0.1-SNAPSHOT.jar app.jar
+RUN bash -c 'touch /app.jar'
+# EXPOSE 8080
+ENV  PARAMS="-D server.port=8071 -D eureka.instance.instance-id=192.168.6.248:8071 eureka.instance.prefer-ip-address=true"
+ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]

@@ -9,12 +9,10 @@ import com.mywuwu.service.IWsService;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.websocket.*;
-import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.*;
@@ -73,6 +71,9 @@ public class MyWebSocket {
     public void onOpen(Session session) {
         webSocketSet.add(this);
         this.session = session;
+        Map<String, String> pathParameters = session.getPathParameters();
+        String userName = pathParameters.get("userName");
+        System.out.println(userName + "==================");
         sessionPool.put(session.getId(), session);
         //添加在线人数
         addOnlineCount();
@@ -92,7 +93,7 @@ public class MyWebSocket {
         String token = pathParameters.get("token"); //从session中获取userId
         Map<String, String> map = new HashMap<>();
         map.put("token", session.getId());
-        kafkaTemplate.send("closeWebsocket", JSON.toJSONString(map));
+        kafkaTemplate.send("closeMyWebsocket", JSON.toJSONString(map));
     }
 
     /**
@@ -213,7 +214,8 @@ public class MyWebSocket {
      */
     public void kafkaCloseWebsocket(String closeMessage) {
         // 有业务需要处理
-        sessionPool.remove(this.session.getId());
+        webSocketSet.remove(this);
+//        sessionPool.remove(this.session.getId());
         sessionPool.remove(this);
     }
 

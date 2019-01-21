@@ -55,11 +55,11 @@
             <artifactId>spring-boot-starter-websocket</artifactId>
             <version>2.1.1.RELEASE</version>
         </dependency>
-     <!--   <dependency>
-            <groupId>org.yeauty</groupId>
-            <artifactId>netty-websocket-spring-boot-starter</artifactId>
-            <version>0.7.3</version>
-        </dependency>-->
+        <!--   <dependency>
+               <groupId>org.yeauty</groupId>
+               <artifactId>netty-websocket-spring-boot-starter</artifactId>
+               <version>0.7.3</version>
+           </dependency>-->
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
@@ -125,11 +125,17 @@
             <artifactId>httpclient</artifactId>
             <version>4.5.6</version>
         </dependency>
-        <!-- netty -->
+        <!--&lt;!&ndash; netty &ndash;&gt;-->
+        <!--<dependency>-->
+        <!--<groupId>io.netty</groupId>-->
+        <!--<artifactId>netty-all</artifactId>-->
+        <!--<version>${netty.version}</version>-->
+        <!--</dependency>-->
+        <!-- spring boot 热部署 -->
         <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
-            <version>${netty.version}</version>
+            <groupId>org.springframework</groupId>
+            <artifactId>springloaded</artifactId>
+            <version>1.2.5.RELEASE</version>
         </dependency>
     </dependencies>
 
@@ -138,35 +144,16 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <!-- spring boot 热部署 -->
-                <dependencies>
-                    <dependency>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>springloaded</artifactId>
-                        <version>1.2.5.RELEASE</version>
-                    </dependency>
-                </dependencies>
-                <!--这里写上main方法所在类的路径-->
-                <configuration>
-                    <mainClass>com.mywuwu.MywuwuWebsocketApplication</mainClass>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
-            <!--<plugin>-->
-                <!--<groupId>org.apache.maven.plugins</groupId>-->
-                <!--<artifactId>maven-surefire-plugin</artifactId>-->
-                <!--<version>2.20.1</version>-->
-                <!--<configuration>-->
-                    <!--&lt;!&ndash; 不指定单元测试 &ndash;&gt;-->
-                    <!--<skipTests>true</skipTests>-->
-                <!--</configuration>-->
-            <!--</plugin>-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.20.1</version>
+                <configuration>
+                    <!-- 不指定单元测试 -->
+                    <skipTests>true</skipTests>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.mybatis.generator</groupId>
                 <artifactId>mybatis-generator-maven-plugin</artifactId>

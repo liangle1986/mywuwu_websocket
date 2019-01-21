@@ -40,7 +40,7 @@ public class WebSocketTest {
     }
 
     public static void main(String[] args) {
-        for (int i = 0; i< 10002; i++) {
+        for (int i = 0; i< 1000; i++) {
             WebSocketTest wSocketTest = new WebSocketTest(String.valueOf(i));
             if (!wSocketTest.start()) {
                 System.out.println("测试结束！");

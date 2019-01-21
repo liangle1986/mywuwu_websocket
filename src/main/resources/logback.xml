@@ -2,5 +2,5 @@
 <configuration>
     <include resource="org/springframework/boot/logging/logback/base.xml" />
     <!-- 这一句至关重要如果没有，就无法输出sql语句 -->
-    <logger name="com.mywuwu.service" level="DEBUG"></logger>
+    <logger name="com.mywuwu.service" level="ERROR"></logger>
  </configuration>

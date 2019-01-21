@@ -31,7 +31,7 @@ public class MyKafkaListener {
      * 关闭连接时的监听
      * @param record
      */
-    @KafkaListener(topics = {"closeWebsocket"})
+    @KafkaListener(topics = {"closeMyWebsocket"})
     private void closeListener(ConsumerRecord<?, ?> record) {
         logger.info("closeWebsocket关闭websocket连接监听："+record.value().toString());
         MyWebSocket chatWebsocket = new MyWebSocket();

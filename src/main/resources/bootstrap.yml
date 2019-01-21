@@ -2,16 +2,18 @@ spring:
   application:
     name: mywuwu-websocket
   zipkin:
-    base-url: http://localhost:8099
+    base-url: http://192.168.6.248:8099
 #server:
 #  port: 8077
 
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://localhost:8071/eureka/
+      defaultZone:  http://192.168.6.248:8071/eureka/
     # 测试时关闭自我保护机制，保证不可用服务及时踢出
   server:
     enable-self-preservation: false
     #清理无效服务间隔（单位毫秒，默认是60*1000）
     eviction-interval-timer-in-ms: 30000
+  instance:
+    preferIpAddress: true
